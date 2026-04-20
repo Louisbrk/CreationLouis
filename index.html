@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
-<title>SkinTrack</title>
+<title>
+SkinTrack</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -8,8 +9,7 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
-
-  <link rel="stylesheet" href="style.css" />
+   <link rel="stylesheet" href="style.css" />
 </head>
 
   <meta charset="UTF-8" />
@@ -19,15 +19,75 @@
   <!-- Symmetrischer Ladebildschirm -->
   <div id="loader" class="loader-bg">
     <div class="loader-center">
-      <div class="loader-logo">
-        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-          <circle cx="32" cy="32" r="28" fill="#ffffff" stroke="#7c6cff" stroke-width="3.5"></circle>
-          <circle cx="24.5" cy="27" r="2.6" fill="#7c6cff"></circle>
-          <circle cx="39.5" cy="27" r="2.6" fill="#7c6cff"></circle>
-          <path d="M23 39 Q32 45 41 39" stroke="#7c6cff" stroke-width="3" stroke-linecap="round" fill="none"></path>
-          <ellipse cx="32" cy="49" rx="12" ry="4.5" fill="#ece8ff"></ellipse>
-        </svg>
-      </div>
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="bgGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C6CFF"/>
+      <stop offset="1" stop-color="#A78BFF"/>
+    </linearGradient>
+
+    <linearGradient id="lineGrad" x1="22" y1="18" x2="42" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EDE8FF"/>
+    </linearGradient>
+
+    <radialGradient id="glowGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(47 18) rotate(90) scale(10)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background badge -->
+  <rect x="6" y="6" width="52" height="52" rx="18" fill="url(#bgGrad)"/>
+
+  <!-- Soft glow -->
+  <circle cx="47" cy="18" r="10" fill="url(#glowGrad)"/>
+
+  <!-- Face outline -->
+  <path
+    d="M35.8 16.5
+       C28.8 16.5 23 22.1 23 29.4
+       C23 34.5 25.3 38.9 29.1 42.2
+       C30.9 43.8 32 45.7 32 47.7"
+    stroke="url(#lineGrad)"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Inner skin curve -->
+  <path
+    d="M36.2 21.5
+       C31.2 23.5 28.8 27.5 28.8 31.8
+       C28.8 35.8 31 38.9 34.8 41.3"
+    stroke="#F7F4FF"
+    stroke-width="2.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+    opacity="0.96"
+  />
+
+  <!-- Small cheek highlight -->
+  <circle cx="39.8" cy="31" r="1.8" fill="#FDFBFF" opacity="0.95"/>
+
+  <!-- Sparkle -->
+  <path
+    d="M46.8 13.8
+       L47.7 16.2
+       L50.1 17.1
+       L47.7 18
+       L46.8 20.4
+       L45.9 18
+       L43.5 17.1
+       L45.9 16.2
+       L46.8 13.8Z"
+    fill="#FFFFFF"
+  />
+</svg>
+
       <p class="loader-title">SkinTrack</p>
       <p class="loader-subtitle">Analyse · Routine · Tracking</p>
       <div class="loader-spinner-wrap">
@@ -39,25 +99,16 @@
   <div id="app-shell" class="app-shell hidden">
     <div class="phone-frame">
       <header class="topbar">
-        <div class="brand">
-          <span class="brand-badge">S</span>
-          <div>
-            <p class="brand-overline">Skincare MVP</p>
-            <h1>SkinTrack</h1>
-          </div>
-        </div>
-
-        <!-- Onboarding Progress -->
-        <div id="onboarding-progress-shell" class="onboarding-progress hidden">
-          <div class="progress-meta">
-            <span id="onboarding-progress-label">Schritt 1 von 7</span>
-            <span id="onboarding-progress-percent">14%</span>
-          </div>
-          <div class="progress-track slim">
-            <div id="onboarding-progress-bar" class="progress-bar"></div>
-          </div>
-        </div>
-      </header>
+  <div id="onboarding-progress-shell" class="onboarding-progress hidden">
+    <div class="progress-meta">
+      <span id="onboarding-progress-label">Schritt 1 von 7</span>
+      <span id="onboarding-progress-percent">14%</span>
+    </div>
+    <div class="progress-track slim">
+      <div id="onboarding-progress-bar" class="progress-bar"></div>
+    </div>
+  </div>
+</header>
 
       <main class="app-content">
         <!-- WELCOME -->
@@ -603,4 +654,3 @@
 
   <script src="script.js"></script>
 </body>
-</html>
