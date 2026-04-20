@@ -177,12 +177,11 @@ svg {
   border-bottom: 1px solid rgba(124, 108, 255, 0.08);
 }
 
+
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
+  display: none !important;
 }
+
 
 .brand-badge {
   width: 46px;
