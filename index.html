@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkinTrack</title>
+  <link rel="stylesheet" href="style.css" /
+</head>
+<body>
+  <!-- Symmetrischer Ladebildschirm -->
+  <div id="loader" class="loader-bg">
+    <div class="loader-center">
+      <div class="loader-logo">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="28" fill="#ffffff" stroke="#7c6cff" stroke-width="3.5"></circle>
+          <circle cx="24.5" cy="27" r="2.6" fill="#7c6cff"></circle>
+          <circle cx="39.5" cy="27" r="2.6" fill="#7c6cff"></circle>
+          <path d="M23 39 Q32 45 41 39" stroke="#7c6cff" stroke-width="3" stroke-linecap="round" fill="none"></path>
+          <ellipse cx="32" cy="49" rx="12" ry="4.5" fill="#ece8ff"></ellipse>
+        </svg>
+      </div>
+      <p class="loader-title">SkinTrack</p>
+      <p class="loader-subtitle">Analyse · Routine · Tracking</p>
+      <div class="loader-spinner-wrap">
+        <div class="loader-spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-shell" class="app-shell hidden">
+    <div class="phone-frame">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-badge">S</span>
+          <div>
+            <p class="brand-overline">Skincare MVP</p>
+            <h1>SkinTrack</h1>
+          </div>
+        </div>
+
+        <!-- Onboarding Progress -->
+        <div id="onboarding-progress-shell" class="onboarding-progress hidden">
+          <div class="progress-meta">
+            <span id="onboarding-progress-label">Schritt 1 von 7</span>
+            <span id="onboarding-progress-percent">14%</span>
+          </div>
+          <div class="progress-track slim">
+            <div id="onboarding-progress-bar" class="progress-bar"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <!-- WELCOME -->
+        <section id="welcome-screen" class="screen">
+          <div class="card hero-card">
+            <p class="eyebrow">Deine mobile Skincare-App</p>
+            <h2>Finde eine Routine, die wirklich zu deiner Haut passt.</h2>
+            <p class="muted">
+              Wir lernen zuerst deine Haut besser kennen, empfehlen dir dann eine Routine
+              und lassen dich Fortschritte über 30 Tage tracken.
+            </p>
+
+            <div class="feature-list">
+              <div class="feature-pill">Visuelles Onboarding</div>
+              <div class="feature-pill">Smarte Routine-Empfehlung</div>
+              <div class="feature-pill">Täglicher Check-in</div>
+              <div class="feature-pill">30-Tage-Ergebnis</div>
+            </div>
+
+            <button id="start-btn" class="primary-btn">Jetzt starten</button>
+          </div>
+        </section>
+
+        <!-- STEP 1: SKIN SKETCH -->
+        <section id="skin-sketch-screen" class="screen hidden">
+          <form id="skin-sketch-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 1 von 7</p>
+              <h2>Wie sieht deine Haut aktuell am ehesten aus?</h2>
+              <p class="muted">
+                Wähle die Darstellung, die deiner Haut im Moment am nächsten kommt.
+              </p>
+            </div>
+
+            <div class="card skin-sketch-grid">
+              <label class="skin-sketch-card">
+                <input type="radio" name="acneLevel" value="none" required />
+                <div class="sketch-visual">
+                  <svg width="72" height="72" viewBox="0 0 80 80" aria-hidden="true">
+                    <circle cx="40" cy="40" r="28" fill="#fff7fb" stroke="#7c6cff" stroke-width="2.4"></circle>
+                    <circle cx="31" cy="35" r="3" fill="#7c6cff"></circle>
+                    <circle cx="49" cy="35" r="3" fill="#7c6cff"></circle>
+                    <path d="M31 50 Q40 57 49 50" stroke="#7c6cff" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+                  </svg>
+                </div>
+                <span class="sketch-title">Kaum Unreinheiten</span>
+                <span class="sketch-desc">Nur selten einzelne Unreinheiten sichtbar</span>
+              </label>
+
+              <label class="skin-sketch-card">
+                <input type="radio" name="acneLevel" value="mild" required />
+                <div class="sketch-visual">
+                  <svg width="72" height="72" viewBox="0 0 80 80" aria-hidden="true">
+                    <circle cx="40" cy="40" r="28" fill="#fff7fb" stroke="#7c6cff" stroke-width="2.4"></circle>
+                    <circle cx="31" cy="35" r="3" fill="#7c6cff"></circle>
+                    <circle cx="49" cy="35" r="3" fill="#7c6cff"></circle>
+                    <path d="M31 50 Q40 57 49 50" stroke="#7c6cff" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+                    <circle cx="27" cy="46" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="53" cy="43" r="2.5" fill="#ff92b0"></circle>
+                  </svg>
+                </div>
+                <span class="sketch-title">Leicht betroffen</span>
+                <span class="sketch-desc">Gelegentliche Pickel oder Mitesser</span>
+              </label>
+
+              <label class="skin-sketch-card">
+                <input type="radio" name="acneLevel" value="moderate" required />
+                <div class="sketch-visual">
+                  <svg width="72" height="72" viewBox="0 0 80 80" aria-hidden="true">
+                    <circle cx="40" cy="40" r="28" fill="#fff7fb" stroke="#7c6cff" stroke-width="2.4"></circle>
+                    <circle cx="31" cy="35" r="3" fill="#7c6cff"></circle>
+                    <circle cx="49" cy="35" r="3" fill="#7c6cff"></circle>
+                    <path d="M31 50 Q40 57 49 50" stroke="#7c6cff" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+                    <circle cx="25" cy="45" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="53" cy="43" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="40" cy="48" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="48" cy="54" r="2.5" fill="#ff92b0"></circle>
+                  </svg>
+                </div>
+                <span class="sketch-title">Mittel betroffen</span>
+                <span class="sketch-desc">Regelmäßige Unreinheiten in mehreren Bereichen</span>
+              </label>
+
+              <label class="skin-sketch-card">
+                <input type="radio" name="acneLevel" value="severe" required />
+                <div class="sketch-visual">
+                  <svg width="72" height="72" viewBox="0 0 80 80" aria-hidden="true">
+                    <circle cx="40" cy="40" r="28" fill="#fff7fb" stroke="#7c6cff" stroke-width="2.4"></circle>
+                    <circle cx="31" cy="35" r="3" fill="#7c6cff"></circle>
+                    <circle cx="49" cy="35" r="3" fill="#7c6cff"></circle>
+                    <path d="M31 50 Q40 57 49 50" stroke="#7c6cff" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+                    <circle cx="23" cy="43" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="30" cy="47" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="40" cy="49" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="50" cy="46" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="57" cy="42" r="2.5" fill="#ff92b0"></circle>
+                    <circle cx="46" cy="56" r="2.5" fill="#ff92b0"></circle>
+                  </svg>
+                </div>
+                <span class="sketch-title">Stärker betroffen</span>
+                <span class="sketch-desc">Deutlich sichtbare Unreinheiten über mehrere Zonen</span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-welcome-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Weiter</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- STEP 2: ACNE HISTORY -->
+        <section id="acne-history-screen" class="screen hidden">
+          <form id="acne-history-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 2 von 7</p>
+              <h2>War deine Haut früher schon öfter von Unreinheiten oder Akne betroffen?</h2>
+
+              <div class="option-grid two-cols">
+                <label class="option-card">
+                  <input type="radio" name="acneHistory" value="never" required />
+                  <span>Nein</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="acneHistory" value="past" required />
+                  <span>Früher ja</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="acneHistory" value="current" required />
+                  <span>Ja, aktuell</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-skin-sketch-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Weiter</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- STEP 3: MAIN CONCERN -->
+        <section id="main-concern-screen" class="screen hidden">
+          <form id="main-concern-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 3 von 7</p>
+              <h2>Was möchtest du am meisten verbessern?</h2>
+
+              <div class="option-grid">
+                <label class="option-card">
+                  <input type="radio" name="mainConcern" value="blemishes" required />
+                  <span>Weniger neue Pickel</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="mainConcern" value="redness" required />
+                  <span>Weniger Rötungen</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="mainConcern" value="dryness" required />
+                  <span>Mehr Feuchtigkeit</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="mainConcern" value="texture" required />
+                  <span>Ruhigere Hautstruktur</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="mainConcern" value="evenness" required />
+                  <span>Ebenmäßigeres Hautbild</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-acne-history-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Weiter</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- STEP 4: SKIN TYPE -->
+        <section id="skin-type-screen" class="screen hidden">
+          <form id="skin-type-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 4 von 7</p>
+              <h2>Wie fühlt sich deine Haut meistens an?</h2>
+
+              <div class="option-grid">
+                <label class="option-card">
+                  <input type="radio" name="skinType" value="oily" required />
+                  <span>Eher ölig</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="skinType" value="dry" required />
+                  <span>Eher trocken</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="skinType" value="combination" required />
+                  <span>Mischhaut</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="skinType" value="normal" required />
+                  <span>Normal</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-main-concern-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Weiter</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- STEP 5: SENSITIVE -->
+        <section id="sensitive-screen" class="screen hidden">
+          <form id="sensitive-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 5 von 7</p>
+              <h2>Reagiert deine Haut schnell gereizt?</h2>
+
+              <div class="option-grid two-cols">
+                <label class="option-card">
+                  <input type="radio" name="sensitive" value="yes" required />
+                  <span>Ja</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="sensitive" value="no" required />
+                  <span>Nein</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-skin-type-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Weiter</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- STEP 6: EFFORT -->
+        <section id="effort-screen" class="screen hidden">
+          <form id="effort-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 6 von 7</p>
+              <h2>Wie viel Zeit möchtest du täglich investieren?</h2>
+
+              <div class="option-grid">
+                <label class="option-card">
+                  <input type="radio" name="effort" value="minimal" required />
+                  <span>Minimal (2 Schritte)</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="effort" value="medium" required />
+                  <span>Mittel (3 Schritte)</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="effort" value="full" required />
+                  <span>Etwas ausführlicher</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-sensitive-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Weiter</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- STEP 7: BUDGET -->
+        <section id="budget-screen" class="screen hidden">
+          <form id="budget-form" class="stack">
+            <div class="card">
+              <p class="eyebrow">Schritt 7 von 7</p>
+              <h2>Wie hoch ist dein Budget?</h2>
+
+              <div class="option-grid">
+                <label class="option-card">
+                  <input type="radio" name="budget" value="low" required />
+                  <span>Niedrig</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="budget" value="mid" required />
+                  <span>Mittel</span>
+                </label>
+
+                <label class="option-card">
+                  <input type="radio" name="budget" value="high" required />
+                  <span>Hoch</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="back-to-effort-btn" class="text-btn">Zurück</button>
+              <button type="submit" class="primary-btn">Routine finden</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- RECOMMENDATION -->
+        <section id="recommendation-screen" class="screen hidden">
+          <div class="card">
+            <p class="eyebrow">Deine Empfehlung</p>
+            <h2 id="recommended-routine-name">Deine Routine</h2>
+            <p id="recommended-routine-badge" class="recommendation-badge"></p>
+            <p id="recommended-routine-description" class="muted"></p>
+          </div>
+
+          <div class="card">
+            <h3>Warum diese Routine?</h3>
+            <p id="recommended-routine-reason" class="muted"></p>
+          </div>
+
+          <div class="card">
+            <h3>Deine 3 Schritte</h3>
+            <ul id="recommended-routine-steps" class="steps-list"></ul>
+          </div>
+
+          <div class="card">
+            <h3>Deine Angaben</h3>
+            <div id="recommended-summary" class="summary-grid"></div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="recommendation-restart-btn" class="text-btn">Neu starten</button>
+            <button type="button" id="accept-routine-btn" class="primary-btn">Routine starten</button>
+          </div>
+        </section>
+
+        <!-- BASELINE -->
+        <section id="baseline-screen" class="screen hidden">
+          <div class="card">
+            <p class="eyebrow">Start-Status</p>
+            <h2>Wie ist deine Haut heute?</h2>
+            <p class="muted">
+              Lege jetzt deinen Ausgangspunkt fest, damit du später Veränderungen sehen kannst.
+            </p>
+
+            <form id="baseline-form" class="stack">
+              <div class="range-group">
+                <div class="range-label-row">
+                  <label for="baseline-blemishes">Unreinheiten</label>
+                  <span id="baseline-blemishes-value">3</span>
+                </div>
+                <input
+                  id="baseline-blemishes"
+                  class="range-input"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="3"
+                />
+              </div>
+
+              <div class="range-group">
+                <div class="range-label-row">
+                  <label for="baseline-redness">Rötungen</label>
+                  <span id="baseline-redness-value">3</span>
+                </div>
+                <input
+                  id="baseline-redness"
+                  class="range-input"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="3"
+                />
+              </div>
+
+              <div class="range-group">
+                <div class="range-label-row">
+                  <label for="baseline-dryness">Trockenheit</label>
+                  <span id="baseline-dryness-value">3</span>
+                </div>
+                <input
+                  id="baseline-dryness"
+                  class="range-input"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="3"
+                />
+              </div>
+
+              <div class="form-actions">
+                <button type="button" id="back-to-recommendation-btn" class="text-btn">Zurück</button>
+                <button type="submit" class="primary-btn">Tracking starten</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard-screen" class="screen hidden">
+          <div class="card dashboard-main-card">
+            <div class="dashboard-header-row">
+              <div>
+                <p class="eyebrow">Aktive Routine</p>
+                <h2 id="dashboard-routine-name">Routine Name</h2>
+              </div>
+              <span id="dashboard-routine-tag" class="dashboard-tag">Aktiv</span>
+            </div>
+
+            <p id="dashboard-routine-description" class="muted"></p>
+
+            <div class="stats-row">
+              <div class="stat-box">
+                <span id="current-day">Tag 1</span>
+                <small>deiner Routine</small>
+              </div>
+
+              <div class="stat-box">
+                <span id="checkin-count">0</span>
+                <small>Check-ins</small>
+              </div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-track">
+                <div id="progress-bar" class="progress-bar"></div>
+              </div>
+              <p id="progress-text" class="muted">Noch 30 Tage bis zum Ergebnis</p>
+            </div>
+
+            <button id="open-results-btn" class="secondary-btn">Ergebnis ansehen</button>
+          </div>
+
+          <div class="card">
+            <h3>Heutiger 10-Sekunden Check-in</h3>
+
+            <form id="checkin-form" class="stack">
+              <div class="range-group">
+                <div class="range-label-row">
+                  <label for="checkin-blemishes">Unreinheiten heute</label>
+                  <span id="checkin-blemishes-value">3</span>
+                </div>
+                <input
+                  id="checkin-blemishes"
+                  class="range-input"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="3"
+                />
+              </div>
+
+              <div class="range-group">
+                <div class="range-label-row">
+                  <label for="checkin-redness">Rötungen heute</label>
+                  <span id="checkin-redness-value">3</span>
+                </div>
+                <input
+                  id="checkin-redness"
+                  class="range-input"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="3"
+                />
+              </div>
+
+              <div class="range-group">
+                <div class="range-label-row">
+                  <label for="checkin-dryness">Trockenheit heute</label>
+                  <span id="checkin-dryness-value">3</span>
+                </div>
+                <input
+                  id="checkin-dryness"
+                  class="range-input"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="3"
+                />
+              </div>
+
+              <label class="checkbox-row">
+                <input id="checkin-consistency" type="checkbox" checked />
+                <span>Ich habe meine Routine heute durchgeführt</span>
+              </label>
+
+              <div class="textarea-group">
+                <label for="checkin-note">Kurznotiz (optional)</label>
+                <textarea
+                  id="checkin-note"
+                  rows="3"
+                  placeholder="z. B. Haut ruhiger, neue Pickel, Produkt gut vertragen..."
+                ></textarea>
+              </div>
+
+              <button type="submit" class="primary-btn">Check-in speichern</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>Routine-Schritte</h3>
+            <ul id="dashboard-steps" class="steps-list"></ul>
+          </div>
+
+          <div class="card">
+            <h3>Verlauf</h3>
+            <ul id="history-list" class="history-list"></ul>
+          </div>
+
+          <div class="card action-card">
+            <button id="demo-btn" class="secondary-btn">Demo: 30 Tage simulieren</button>
+            <button id="reset-btn" class="danger-btn">App zurücksetzen</button>
+          </div>
+        </section>
+
+        <!-- RESULTS -->
+        <section id="results-screen" class="screen hidden">
+          <div class="card">
+            <p class="eyebrow">Ergebnis</p>
+            <h2 id="result-headline">Dein 30-Tage Ergebnis</h2>
+            <p id="result-summary" class="muted"></p>
+
+            <div id="result-cards" class="results-grid"></div>
+
+            <div class="form-actions">
+              <button type="button" id="results-restart-btn" class="text-btn">Neu starten</button>
+              <button type="button" id="back-to-dashboard-btn" class="primary-btn">Zurück zum Dashboard</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
