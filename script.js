@@ -53,6 +53,10 @@ function loadState() {
 
 let state = loadState();
 
+let selectedCalendarDayKey = null;
+
+let currentCheckinPhoto = null;
+
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -79,6 +83,8 @@ const allScreens = [
   "custom-routine-screen",
   "baseline-screen",
   "dashboard-screen",
+  "calendar-screen",
+  "daily-checkin-screen",
   "results-screen"
 ];
 
@@ -106,6 +112,39 @@ function showScreen(screenId) {
   }
 
   updateProgressBar(screenId);
+  updateBottomNav(screenId);
+}
+function updateBottomNav(screenId) {
+  const bottomNav = document.querySelector(".bottom-nav");
+  if (!bottomNav) return;
+
+  const appScreens = [
+    "dashboard-screen",
+    "calendar-screen",
+    "daily-checkin-screen",
+    "results-screen"
+  ];
+
+  if (appScreens.includes(screenId)) {
+    bottomNav.classList.remove("hidden");
+  } else {
+    bottomNav.classList.add("hidden");
+  }
+
+  const buttons = bottomNav.querySelectorAll(".bottom-nav-btn");
+  buttons.forEach((btn) => btn.classList.remove("active"));
+
+  const activeMap = {
+    "dashboard-screen": "nav-home-btn",
+    "calendar-screen": "nav-calendar-btn",
+    "daily-checkin-screen": "nav-checkin-btn",
+    "results-screen": "nav-results-btn"
+  };
+
+  const activeBtn = document.getElementById(activeMap[screenId]);
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+  }
 }
 
 function updateProgressBar(screenId) {
@@ -139,6 +178,34 @@ function getPreviousOnboardingScreen(currentScreen) {
   const idx = onboardingFlow.findIndex((item) => item.screen === currentScreen);
   if (idx <= 0) return "welcome-screen";
   return onboardingFlow[idx - 1].screen;
+}
+function bindBottomNav() {
+  const navButtons = document.querySelectorAll(".bottom-nav-btn");
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.target;
+      if (!target) return;
+
+      if (target === "dashboard-screen") {
+        renderDashboard();
+      }
+
+      if (target === "calendar-screen") {
+        renderCalendar();
+      }
+
+      if (target === "daily-checkin-screen") {
+        prefillTodayCheckin();
+      }
+
+      if (target === "results-screen") {
+        renderResults();
+      }
+
+      showScreen(target);
+    });
+  });
 }
 
 /* =========================
@@ -517,6 +584,7 @@ function resetAllForms() {
 function resetEntireApp() {
   resetState();
   resetAllForms();
+  selectedCalendarDayKey = null;
   showScreen("welcome-screen");
 }
 
@@ -762,7 +830,6 @@ function getDaysSinceStart() {
   const diff = today.getTime() - start.getTime();
   return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
 }
-
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("de-DE", {
     day: "2-digit",
@@ -771,8 +838,177 @@ function formatDate(dateString) {
   });
 }
 
+function getLocalDayKey(dateObj = new Date()) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseDayKey(dayKey) {
+  const [year, month, day] = dayKey.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatShortDate(dateObj) {
+  return dateObj.toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit"
+  });
+}
+
+function getCheckinByDayKey(dayKey) {
+  return state.checkins.find((item) => item.dayKey === dayKey);
+}
+
+function renderCalendarDetail(dayKey) {
+  const detailEl = document.getElementById("calendar-detail");
+  if (!detailEl || !state.startDate) return;
+
+  const start = new Date(state.startDate);
+  start.setHours(0, 0, 0, 0);
+
+  const date = parseDayKey(dayKey);
+  date.setHours(0, 0, 0, 0);
+
+  const dayIndex =
+    Math.floor((date.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const checkin = getCheckinByDayKey(dayKey);
+
+  if (date > today) {
+    detailEl.innerHTML = `
+      <p><strong>${formatDate(date.toISOString())}</strong> · Tag ${dayIndex}</p>
+      <p>Dieser Tag liegt noch in der Zukunft.</p>
+    `;
+    return;
+  }
+
+  if (!checkin) {
+    detailEl.innerHTML = `
+      <p><strong>${formatDate(date.toISOString())}</strong> · Tag ${dayIndex}</p>
+      <p>Für diesen Tag wurde noch kein Check-in gespeichert.</p>
+    `;
+    return;
+  }
+
+  detailEl.innerHTML = `
+    <p><strong>${formatDate(checkin.date)}</strong> · Tag ${dayIndex}</p>
+    ${
+      checkin.photo
+        ? `
+          <div class="calendar-detail-photo-wrap">
+            ${checkin.photo}
+          </div>
+        `
+        : ``
+    }
+    <p>Unreinheiten: ${checkin.blemishes}</p>
+    <p>Rötungen: ${checkin.redness}</p>
+    <p>Trockenheit: ${checkin.dryness}</p>
+    <p>Routine durchgeführt: ${checkin.consistency ? "Ja" : "Nein"}</p>
+    ${
+      checkin.note
+        ? `<p>Notiz: ${checkin.note}</p>`
+        : `<p>Keine Notiz gespeichert.</p>`
+    }
+  `;
+}
+
+function renderCalendar() {
+  const gridEl = document.getElementById("calendar-grid");
+  const detailEl = document.getElementById("calendar-detail");
+  const rangeEl = document.getElementById("calendar-range-label");
+
+  if (!gridEl || !detailEl || !rangeEl || !state.startDate) return;
+
+  const start = new Date(state.startDate);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 29);
+
+  rangeEl.textContent = `${formatShortDate(start)} – ${formatShortDate(end)}`;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startWeekday = (start.getDay() + 6) % 7; // Mo=0, So=6
+  const cells = [];
+
+  // Leere Felder vor dem ersten Tag, damit es wie ein klassischer Kalender startet
+  for (let i = 0; i < startWeekday; i++) {
+    cells.push(`<div class="calendar-empty"></div>`);
+  }
+
+  for (let i = 0; i < 30; i++) {
+    const current = new Date(start);
+    current.setDate(start.getDate() + i);
+    current.setHours(0, 0, 0, 0);
+
+    const dayKey = getLocalDayKey(current);
+    const isToday = dayKey === getLocalDayKey(today);
+    const hasCheckin = !!getCheckinByDayKey(dayKey);
+    const isFuture = current > today;
+    const isPastWithoutCheckin = current < today && !hasCheckin;
+
+    const classes = ["calendar-day"];
+    if (hasCheckin) classes.push("done");
+    if (isToday) classes.push("today");
+    if (isFuture) classes.push("future");
+    if (isPastWithoutCheckin) classes.push("missed");
+    if (selectedCalendarDayKey === dayKey) classes.push("selected");
+
+    cells.push(`
+      <button type="button" class="${classes.join(" ")}" data-day-key="${dayKey}">
+        <span class="calendar-day-number">${current.getDate()}</span>
+        <span class="calendar-day-subtext">${formatShortDate(current)}</span>
+        ${hasCheckin ? `<span class="calendar-dot"></span>` : ``}
+      </button>
+    `);
+  }
+
+  gridEl.innerHTML = cells.join("");
+
+  if (!selectedCalendarDayKey) {
+    selectedCalendarDayKey = getLocalDayKey(today);
+  }
+
+  const selectedDate = parseDayKey(selectedCalendarDayKey);
+  const minDate = new Date(start);
+  const maxDate = new Date(end);
+
+  if (selectedDate < minDate || selectedDate > maxDate) {
+    selectedCalendarDayKey = getLocalDayKey(today);
+  }
+
+  const dayButtons = gridEl.querySelectorAll(".calendar-day");
+  dayButtons.forEach((button) => {
+    const dayKey = button.dataset.dayKey;
+    const dayDate = parseDayKey(dayKey);
+    dayDate.setHours(0, 0, 0, 0);
+
+    if (dayDate > today) {
+      button.disabled = true;
+      return;
+    }
+
+    button.addEventListener("click", () => {
+      selectedCalendarDayKey = dayKey;
+      renderCalendar();
+      renderCalendarDetail(dayKey);
+    });
+  });
+
+  renderCalendarDetail(selectedCalendarDayKey);
+}
+
+
 function upsertTodayCheckin(checkinData) {
-  const todayKey = new Date().toISOString().split("T")[0];
+  const todayKey = getLocalDayKey();
 
   const payload = {
     dayKey: todayKey,
@@ -825,9 +1061,91 @@ function setCheckinInputValue(id, value) {
   if (input) input.value = value;
   if (label) label.textContent = value;
 }
+function setCheckinPhotoPreview(photoDataUrl) {
+  const previewEl = document.getElementById("checkin-photo-preview");
+  const placeholderEl = document.getElementById("checkin-photo-placeholder");
+  const removeBtn = document.getElementById("checkin-photo-remove-btn");
+
+  currentCheckinPhoto = photoDataUrl || null;
+
+  if (previewEl) {
+    if (photoDataUrl) {
+      previewEl.src = photoDataUrl;
+      previewEl.classList.remove("hidden");
+    } else {
+      previewEl.src = "";
+      previewEl.classList.add("hidden");
+    }
+  }
+
+  if (placeholderEl) {
+    if (photoDataUrl) {
+      placeholderEl.classList.add("hidden");
+    } else {
+      placeholderEl.classList.remove("hidden");
+    }
+  }
+
+  if (removeBtn) {
+    if (photoDataUrl) {
+      removeBtn.classList.remove("hidden");
+    } else {
+      removeBtn.classList.add("hidden");
+    }
+  }
+}
+
+function clearCheckinPhotoPreview() {
+  setCheckinPhotoPreview(null);
+}
+
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        const maxDimension = 900;
+
+        if (width > height && width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else if (height >= width && height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas context not available"));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+        resolve(dataUrl);
+      };
+
+      img.onerror = () => reject(new Error("Bild konnte nicht geladen werden"));
+      img.src = reader.result;
+    };
+
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden"));
+    reader.readAsDataURL(file);
+  });
+}
 
 function prefillTodayCheckin() {
-  const todayKey = new Date().toISOString().split("T")[0];
+  const todayKey = getLocalDayKey();
   const todayCheckin = state.checkins.find((item) => item.dayKey === todayKey);
 
   const consistencyEl = document.getElementById("checkin-consistency");
@@ -840,6 +1158,12 @@ function prefillTodayCheckin() {
 
     if (consistencyEl) consistencyEl.checked = todayCheckin.consistency;
     if (noteEl) noteEl.value = todayCheckin.note || "";
+
+    if (todayCheckin.photo) {
+      setCheckinPhotoPreview(todayCheckin.photo);
+    } else {
+      clearCheckinPhotoPreview();
+    }
     return;
   }
 
@@ -851,6 +1175,8 @@ function prefillTodayCheckin() {
     if (consistencyEl) consistencyEl.checked = true;
     if (noteEl) noteEl.value = "";
   }
+
+  clearCheckinPhotoPreview();
 }
 
 function renderDashboard() {
@@ -902,14 +1228,50 @@ document.getElementById("dashboard-steps").innerHTML = steps
   .join("");
 
 
-  renderHistory();
-  prefillTodayCheckin();
+  
+renderHistory();
+prefillTodayCheckin();
+renderCalendar();
+
 }
 
 function bindDashboard() {
   bindRangeLabel("checkin-blemishes");
   bindRangeLabel("checkin-redness");
   bindRangeLabel("checkin-dryness");
+
+  const photoInput = document.getElementById("checkin-photo-input");
+  const photoBtn = document.getElementById("checkin-photo-btn");
+  const removePhotoBtn = document.getElementById("checkin-photo-remove-btn");
+
+  if (photoBtn && photoInput) {
+    photoBtn.addEventListener("click", () => {
+      photoInput.click();
+    });
+  }
+
+  if (photoInput) {
+    photoInput.addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      try {
+        const photoDataUrl = await compressImageFile(file);
+        setCheckinPhotoPreview(photoDataUrl);
+      } catch (error) {
+        console.error("Photo error:", error);
+        alert("Foto konnte nicht geladen werden.");
+      }
+
+      photoInput.value = "";
+    });
+  }
+
+  if (removePhotoBtn) {
+    removePhotoBtn.addEventListener("click", () => {
+      clearCheckinPhotoPreview();
+    });
+  }
 
   const form = document.getElementById("checkin-form");
   if (form) {
@@ -921,7 +1283,8 @@ function bindDashboard() {
         redness: Number(document.getElementById("checkin-redness").value),
         dryness: Number(document.getElementById("checkin-dryness").value),
         consistency: document.getElementById("checkin-consistency").checked,
-        note: document.getElementById("checkin-note").value.trim()
+        note: document.getElementById("checkin-note").value.trim(),
+        photo: currentCheckinPhoto
       });
 
       renderDashboard();
@@ -934,6 +1297,21 @@ function bindDashboard() {
     openResultsBtn.addEventListener("click", () => {
       renderResults();
       showScreen("results-screen");
+    });
+  }
+  const openCheckinBtn = document.getElementById("open-checkin-btn");
+  if (openCheckinBtn) {
+    openCheckinBtn.addEventListener("click", () => {
+      prefillTodayCheckin();
+      showScreen("daily-checkin-screen");
+    });
+  }
+
+  const openCalendarBtn = document.getElementById("open-calendar-btn");
+  if (openCalendarBtn) {
+    openCalendarBtn.addEventListener("click", () => {
+      renderCalendar();
+      showScreen("calendar-screen");
     });
   }
 
@@ -1049,18 +1427,26 @@ function renderResults() {
 
   const focusLabel = getConcernLabel(state.onboarding.mainConcern);
 
+  const routineLabel =
+    state.routineMode === "custom"
+      ? "Eigene Routine"
+      : routines[state.activeRoutine].name;
+
+  const routineDescriptionLabel =
+    state.routineMode === "custom"
+      ? `${(state.customRoutine || []).filter(Boolean).length} Produkte getrackt`
+      : routines[state.activeRoutine].description;
+
   document.getElementById("result-headline").textContent = headline;
   document.getElementById("result-summary").textContent =
     `${unfinishedText} Dein Fokus war: ${focusLabel}. Gesamtveränderung: ${improvementPercent}% im Vergleich zum Startstatus.`;
 
-  document.getElementById("result-cards").innerHTML = `
-   
-<div class="result-card">
-  <span class="small-note">Aktive Routine</span>
-  <strong>${routineLabel}</strong>
-  <span class="small-note">${routineDescriptionLabel}</span>
-</div>
-
+ document.getElementById("result-cards").innerHTML = `
+    <div class="result-card">
+      <span class="small-note">Gesamtveränderung</span>
+      <strong>${improvementPercent}%</strong>
+      <span class="small-note">Positiver Wert = Verbesserung</span>
+    </div>
 
     <div class="result-card">
       <span class="small-note">Check-in-Quote</span>
@@ -1088,8 +1474,8 @@ function renderResults() {
 
     <div class="result-card">
       <span class="small-note">Aktive Routine</span>
-      <strong>${routines[state.activeRoutine].name}</strong>
-      <span class="small-note">${routines[state.activeRoutine].description}</span>
+      <strong>${routineLabel}</strong>
+      <span class="small-note">${routineDescriptionLabel}</span>
     </div>
   `;
 }
@@ -1202,6 +1588,7 @@ function initApp() {
   bindBaseline();
   bindDashboard();
   bindResults();
+  bindBottomNav();
   restoreApp();
 
   // Loader -> danach App anzeigen
@@ -1216,4 +1603,4 @@ function initApp() {
 
 window.addEventListener("DOMContentLoaded", initApp);
 
- const loader = document.getElementById("loader");
+
