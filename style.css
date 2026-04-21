@@ -177,11 +177,9 @@ svg {
   border-bottom: 1px solid rgba(124, 108, 255, 0.08);
 }
 
-
 .brand {
   display: none !important;
 }
-
 
 .brand-badge {
   width: 46px;
@@ -808,3 +806,52 @@ input:focus {
     backdrop-filter: blur(14px);
   }
 }
+.large-option-card {
+  min-height: 92px;
+}
+
+.product-input-stack {
+  gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.input-group input {
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 108, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,245,255,0.96) 100%);
+  color: var(--text);
+  box-shadow:
+    0 8px 18px rgba(35, 22, 80, 0.05),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.input-group input::placeholder {
+  color: #a19ab8;
+}
+
+.input-group input:focus {
+  border-color: rgba(124, 108, 255, 0.34);
+  box-shadow:
+    0 0 0 3px rgba(124, 108, 255, 0.08),
+    0 10px 20px rgba(35, 22, 80, 0.08);
+}
+  
