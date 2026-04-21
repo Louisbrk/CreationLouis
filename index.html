@@ -3,6 +3,7 @@
 <title>
 SkinTrack</title>
 
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -421,6 +422,36 @@ SkinTrack</title>
             </div>
           </form>
         </section>
+        <!-- NEW: ROUTINE MODE CHOICE -->
+<section id="routine-mode-screen" class="screen hidden">
+  <form id="routine-mode-form" class="stack">
+    <div class="card">
+      <p class="eyebrow">Wie möchtest du starten?</p>
+      <h2>Empfohlene Routine oder eigene Routine?</h2>
+      <p class="muted">
+        Du kannst unserer Empfehlung folgen oder deine aktuellen Produkte selbst eintragen.
+      </p>
+
+      <div class="option-grid">
+        <label class="option-card large-option-card">
+          <input type="radio" name="routineMode" value="recommended" required />
+          <span>Empfohlene Routine nutzen</span>
+        </label>
+
+        <label class="option-card large-option-card">
+          <input type="radio" name="routineMode" value="custom" required />
+          <span>Eigene Routine tracken</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" id="back-to-budget-btn" class="text-btn">Zurück</button>
+      <button type="submit" class="primary-btn">Weiter</button>
+    </div>
+  </form>
+</section>
+
 
         <!-- RECOMMENDATION -->
         <section id="recommendation-screen" class="screen hidden">
@@ -451,6 +482,51 @@ SkinTrack</title>
             <button type="button" id="accept-routine-btn" class="primary-btn">Routine starten</button>
           </div>
         </section>
+        <!-- NEW: CUSTOM ROUTINE -->
+<section id="custom-routine-screen" class="screen hidden">
+  <form id="custom-routine-form" class="stack">
+    <div class="card">
+      <p class="eyebrow">Eigene Routine</p>
+      <h2>Welche Produkte nutzt du aktuell?</h2>
+      <p class="muted">
+        Trage bis zu 5 Produkte ein, die du regelmäßig verwendest.
+      </p>
+
+      <div class="stack product-input-stack">
+        <div class="input-group">
+          <label for="product-1">Produkt 1</label>
+          <input id="product-1" name="product1" type="text" placeholder="z. B. CeraVe Cleanser" maxlength="50" required />
+        </div>
+
+        <div class="input-group">
+          <label for="product-2">Produkt 2</label>
+          <input id="product-2" name="product2" type="text" placeholder="z. B. Niacinamide Serum" maxlength="50" />
+        </div>
+
+        <div class="input-group">
+          <label for="product-3">Produkt 3</label>
+          <input id="product-3" name="product3" type="text" placeholder="z. B. Moisturizer" maxlength="50" />
+        </div>
+
+        <div class="input-group">
+          <label for="product-4">Produkt 4</label>
+          <input id="product-4" name="product4" type="text" placeholder="z. B. SPF 50" maxlength="50" />
+        </div>
+
+        <div class="input-group">
+          <label for="product-5">Produkt 5</label>
+          <input id="product-5" name="product5" type="text" placeholder="optional" maxlength="50" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" id="back-to-routine-mode-from-custom-btn" class="text-btn">Zurück</button>
+      <button type="submit" class="primary-btn">Routine speichern</button>
+    </div>
+  </form>
+</section>
+
 
         <!-- BASELINE -->
         <section id="baseline-screen" class="screen hidden">
@@ -618,7 +694,7 @@ SkinTrack</title>
           </div>
 
           <div class="card">
-            <h3>Routine-Schritte</h3>
+            <h3>Routine-Schritte / Produkte</h3>
             <ul id="dashboard-steps" class="steps-list"></ul>
           </div>
 
@@ -654,3 +730,4 @@ SkinTrack</title>
 
   <script src="script.js"></script>
 </body>
+</html>
