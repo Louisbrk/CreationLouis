@@ -17,6 +17,8 @@ function getDefaultState() {
       effort: null,
       budget: null
     },
+    routineMode: null,
+    customRoutine: [],
     recommendation: null,
     baseline: null,
     startDate: null,
@@ -72,7 +74,9 @@ const allScreens = [
   "sensitive-screen",
   "effort-screen",
   "budget-screen",
+  "routine-mode-screen",
   "recommendation-screen",
+  "custom-routine-screen",
   "baseline-screen",
   "dashboard-screen",
   "results-screen"
@@ -553,11 +557,12 @@ function bindOnboardingStep(formId, fieldName, currentScreenId) {
     state.onboarding[fieldName] = selected.value;
     saveState();
 
-    if (currentScreenId === "budget-screen") {
-      renderRecommendation();
-      showScreen("recommendation-screen");
-      return;
-    }
+    
+if (currentScreenId === "budget-screen") {
+  showScreen("routine-mode-screen");
+  return;
+}
+
 
     const next = getNextOnboardingScreen(currentScreenId);
     if (next) {
@@ -567,12 +572,18 @@ function bindOnboardingStep(formId, fieldName, currentScreenId) {
 }
 
 function bindOnboarding() {
-  const startBtn = document.getElementById("start-btn");
-  if (startBtn) {
-    startBtn.addEventListener("click", () => {
+ const startBtn = document.getElementById("start-btn");
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    const firstIncomplete = getFirstIncompleteOnboardingScreen();
+
+    if (firstIncomplete) {
+      showScreen(firstIncomplete);
+    } else {
       showScreen("skin-sketch-screen");
-    });
-  }
+    }
+  });
+}
 
   bindOnboardingBackButtons();
 
@@ -583,6 +594,73 @@ function bindOnboarding() {
   bindOnboardingStep("sensitive-form", "sensitive", "sensitive-screen");
   bindOnboardingStep("effort-form", "effort", "effort-screen");
   bindOnboardingStep("budget-form", "budget", "budget-screen");
+  const backToBudgetBtn = document.getElementById("back-to-budget-btn");
+if (backToBudgetBtn) {
+  backToBudgetBtn.addEventListener("click", () => {
+    showScreen("budget-screen");
+  });
+}
+
+const backToRoutineModeFromCustomBtn = document.getElementById("back-to-routine-mode-from-custom-btn");
+if (backToRoutineModeFromCustomBtn) {
+  backToRoutineModeFromCustomBtn.addEventListener("click", () => {
+    showScreen("routine-mode-screen");
+  });
+}
+
+const backToRoutineModeBtn = document.getElementById("back-to-routine-mode-btn");
+if (backToRoutineModeBtn) {
+  backToRoutineModeBtn.addEventListener("click", () => {
+    showScreen("routine-mode-screen");
+  });
+}
+
+const routineModeForm = document.getElementById("routine-mode-form");
+if (routineModeForm) {
+  routineModeForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const selected = routineModeForm.querySelector('input[name="routineMode"]:checked');
+    if (!selected) return;
+
+    state.routineMode = selected.value;
+    saveState();
+
+    if (selected.value === "recommended") {
+      renderRecommendation();
+      showScreen("recommendation-screen");
+    } else {
+      showScreen("custom-routine-screen");
+    }
+  });
+}
+
+const customRoutineForm = document.getElementById("custom-routine-form");
+if (customRoutineForm) {
+  customRoutineForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const products = [
+      customRoutineForm.product1.value.trim(),
+      customRoutineForm.product2.value.trim(),
+      customRoutineForm.product3.value.trim(),
+      customRoutineForm.product4.value.trim(),
+      customRoutineForm.product5.value.trim()
+    ].filter(Boolean);
+
+    if (!products.length) {
+      alert("Bitte gib mindestens ein Produkt ein.");
+      return;
+    }
+
+    state.routineMode = "custom";
+    state.customRoutine = products;
+    state.activeRoutine = null;
+    saveState();
+
+    showScreen("baseline-screen");
+  });
+}
 
   document.querySelectorAll('.skin-sketch-card input[type="radio"]').forEach((input) => {
     input.addEventListener("change", updateSkinSketchSelection);
@@ -602,9 +680,13 @@ function bindOnboarding() {
         renderRecommendation();
       }
 
-      state.activeRoutine = state.recommendation.routineId;
-      saveState();
-      showScreen("baseline-screen");
+      
+state.routineMode = "recommended";
+state.customRoutine = [];
+state.activeRoutine = state.recommendation.routineId;
+saveState();
+showScreen("baseline-screen");
+
     });
   }
 }
@@ -632,10 +714,16 @@ function bindBaseline() {
 
   const backBtn = document.getElementById("back-to-recommendation-btn");
   if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      renderRecommendation();
-      showScreen("recommendation-screen");
-    });
+   
+backBtn.addEventListener("click", () => {
+  if (state.routineMode === "custom") {
+    showScreen("custom-routine-screen");
+  } else {
+    renderRecommendation();
+    showScreen("recommendation-screen");
+  }
+});
+
   }
 
   const form = document.getElementById("baseline-form");
@@ -766,19 +854,38 @@ function prefillTodayCheckin() {
 }
 
 function renderDashboard() {
-  if (!state.activeRoutine) return;
+  let routineName = "";
+  let routineDescription = "";
+  let steps = [];
+  let tag = "Aktiv";
 
-  const routine = routines[state.activeRoutine];
-  if (!routine) return;
+  if (state.routineMode === "custom") {
+    routineName = "Eigene Routine";
+    routineDescription = "Du trackst die Produkte, die du aktuell selbst verwendest.";
+    steps = (state.customRoutine || []).filter(Boolean);
+    tag = "Custom";
+  } else {
+    if (!state.activeRoutine) return;
+
+    const routine = routines[state.activeRoutine];
+    if (!routine) return;
+
+    routineName = routine.name;
+    routineDescription = routine.description;
+    steps = routine.steps;
+    tag = "Aktiv";
+  }
 
   const days = getDaysSinceStart();
   const clampedDays = Math.max(days, 1);
   const progress = Math.min((clampedDays / 30) * 100, 100);
 
-  document.getElementById("dashboard-routine-name").textContent = routine.name;
-  document.getElementById("dashboard-routine-tag").textContent = "Aktiv";
-  document.getElementById("dashboard-routine-description").textContent =
-    routine.description;
+  
+document.getElementById("dashboard-routine-name").textContent = routineName;
+document.getElementById("dashboard-routine-tag").textContent = tag;
+document.getElementById("dashboard-routine-description").textContent =
+  routineDescription;
+
 
   document.getElementById("current-day").textContent = `Tag ${clampedDays}`;
   document.getElementById("checkin-count").textContent = state.checkins.length;
@@ -789,9 +896,11 @@ function renderDashboard() {
       ? "Deine 30 Tage sind abgeschlossen. Du kannst jetzt dein Ergebnis ansehen."
       : `Noch ${30 - clampedDays} Tage bis zum Ergebnis`;
 
-  document.getElementById("dashboard-steps").innerHTML = routine.steps
-    .map((step) => `<li>${step}</li>`)
-    .join("");
+ 
+document.getElementById("dashboard-steps").innerHTML = steps
+  .map((step) => `<li>${step}</li>`)
+  .join("");
+
 
   renderHistory();
   prefillTodayCheckin();
@@ -885,8 +994,10 @@ function getConcernLabel(concern) {
   return map[concern] || "dein Hautziel";
 }
 
+
 function renderResults() {
-  if (!state.baseline || !state.activeRoutine) return;
+  if (!state.baseline) return;
+
 
   const baseline = state.baseline;
 
@@ -943,11 +1054,13 @@ function renderResults() {
     `${unfinishedText} Dein Fokus war: ${focusLabel}. Gesamtveränderung: ${improvementPercent}% im Vergleich zum Startstatus.`;
 
   document.getElementById("result-cards").innerHTML = `
-    <div class="result-card">
-      <span class="small-note">Gesamtveränderung</span>
-      <strong>${improvementPercent}%</strong>
-      <span class="small-note">Positiver Wert = Verbesserung</span>
-    </div>
+   
+<div class="result-card">
+  <span class="small-note">Aktive Routine</span>
+  <strong>${routineLabel}</strong>
+  <span class="small-note">${routineDescriptionLabel}</span>
+</div>
+
 
     <div class="result-card">
       <span class="small-note">Check-in-Quote</span>
@@ -1016,6 +1129,25 @@ function restoreOnboardingSelections() {
   });
 
   updateSkinSketchSelection();
+  if (state.routineMode) {
+  const modeInput = document.querySelector(
+    `#routine-mode-form input[name="routineMode"][value="${state.routineMode}"]`
+  );
+  if (modeInput) {
+    modeInput.checked = true;
+  }
+}
+
+const customRoutineForm = document.getElementById("custom-routine-form");
+if (customRoutineForm && Array.isArray(state.customRoutine)) {
+  const names = ["product1", "product2", "product3", "product4", "product5"];
+
+  names.forEach((name, index) => {
+    if (customRoutineForm[name]) {
+      customRoutineForm[name].value = state.customRoutine[index] || "";
+    }
+  });
+}
 }
 
 function getFirstIncompleteOnboardingScreen() {
@@ -1030,20 +1162,27 @@ function getFirstIncompleteOnboardingScreen() {
 function restoreApp() {
   restoreOnboardingSelections();
 
-  if (state.activeRoutine && state.baseline && state.startDate) {
-    renderDashboard();
-    showScreen("dashboard-screen");
-    return;
-  }
+ if (state.baseline && state.startDate && (state.routineMode === "custom" || state.activeRoutine)) {
+  renderDashboard();
+  showScreen("dashboard-screen");
+  return;
+}
 
-  const onboardingComplete = onboardingFlow.every(
-    (step) => !!state.onboarding[step.field]
-  );
+const onboardingComplete = onboardingFlow.every(
+  (step) => !!state.onboarding[step.field]
+);
 
-  if (onboardingComplete) {
+if (onboardingComplete) {
+  if (state.routineMode === "custom" && (state.customRoutine || []).length) {
+    showScreen("custom-routine-screen");
+  } else if (state.routineMode === "recommended") {
     renderRecommendation();
     showScreen("recommendation-screen");
-    return;
+  } else {
+    showScreen("routine-mode-screen");
+  }
+  return;
+
   }
 
   const firstIncomplete = getFirstIncompleteOnboardingScreen();
@@ -1072,7 +1211,7 @@ function initApp() {
 
     if (loader) loader.classList.add("hidden");
     if (appShell) appShell.classList.remove("hidden");
-  }, 1200);
+  }, 2200);
 }
 
 window.addEventListener("DOMContentLoaded", initApp);
