@@ -623,75 +623,16 @@ SkinTrack</title>
               <p id="progress-text" class="muted">Noch 30 Tage bis zum Ergebnis</p>
             </div>
 
-            <button id="open-results-btn" class="secondary-btn">Ergebnis ansehen</button>
+            <div class="dashboard-quick-actions">
+  <button id="open-checkin-btn" class="primary-btn">Heutigen Check-in starten</button>
+  <button id="open-calendar-btn" class="secondary-btn">Kalender öffnen</button>
+</div>
+
+<button id="open-results-btn" class="text-btn">Ergebnis ansehen</button>
           </div>
+          
 
-          <div class="card">
-            <h3>Heutiger 10-Sekunden Check-in</h3>
 
-            <form id="checkin-form" class="stack">
-              <div class="range-group">
-                <div class="range-label-row">
-                  <label for="checkin-blemishes">Unreinheiten heute</label>
-                  <span id="checkin-blemishes-value">3</span>
-                </div>
-                <input
-                  id="checkin-blemishes"
-                  class="range-input"
-                  type="range"
-                  min="1"
-                  max="5"
-                  value="3"
-                />
-              </div>
-
-              <div class="range-group">
-                <div class="range-label-row">
-                  <label for="checkin-redness">Rötungen heute</label>
-                  <span id="checkin-redness-value">3</span>
-                </div>
-                <input
-                  id="checkin-redness"
-                  class="range-input"
-                  type="range"
-                  min="1"
-                  max="5"
-                  value="3"
-                />
-              </div>
-
-              <div class="range-group">
-                <div class="range-label-row">
-                  <label for="checkin-dryness">Trockenheit heute</label>
-                  <span id="checkin-dryness-value">3</span>
-                </div>
-                <input
-                  id="checkin-dryness"
-                  class="range-input"
-                  type="range"
-                  min="1"
-                  max="5"
-                  value="3"
-                />
-              </div>
-
-              <label class="checkbox-row">
-                <input id="checkin-consistency" type="checkbox" checked />
-                <span>Ich habe meine Routine heute durchgeführt</span>
-              </label>
-
-              <div class="textarea-group">
-                <label for="checkin-note">Kurznotiz (optional)</label>
-                <textarea
-                  id="checkin-note"
-                  rows="3"
-                  placeholder="z. B. Haut ruhiger, neue Pickel, Produkt gut vertragen..."
-                ></textarea>
-              </div>
-
-              <button type="submit" class="primary-btn">Check-in speichern</button>
-            </form>
-          </div>
 
           <div class="card">
             <h3>Routine-Schritte / Produkte</h3>
@@ -709,6 +650,132 @@ SkinTrack</title>
           </div>
         </section>
 
+        <section id="calendar-screen" class="screen hidden">
+        <div class="card">
+  <div class="calendar-topbar">
+    <div>
+      <h3>Kalender</h3>
+      <p class="small-note">Dein 30-Tage-Verlauf auf einen Blick</p>
+    </div>
+    <span id="calendar-range-label" class="calendar-range-label">Tag 1–30</span>
+  </div>
+ <div class="calendar-weekdays">
+  <span>Mo</span>
+  <span>Di</span>
+  <span>Mi</span>
+  <span>Do</span>
+  <span>Fr</span>
+  <span>Sa</span>
+  <span>So</span>
+</div>
+<div id="calendar-grid" class="calendar-grid"></div>
+  
+ <div id="calendar-detail" class="calendar-detail">
+    Wähle einen Tag aus, um Details zu sehen.
+  </div>
+</div>
+</section>
+
+<section id="daily-checkin-screen" class="screen hidden">
+  <div class="card">
+    <h3>Heutiger 10-Sekunden Check-in</h3>
+
+    <form id="checkin-form" class="stack">
+      <div class="checkin-photo-card">
+  <div class="checkin-photo-header">
+    <div>
+      <label class="checkin-photo-title">Heutiges Hautfoto</label>
+      <p class="small-note">Optional, aber sehr hilfreich für deinen Verlauf</p>
+    </div>
+    <button type="button" id="checkin-photo-remove-btn" class="text-btn hidden">
+      Entfernen
+    </button>
+  </div>
+
+  <input
+    id="checkin-photo-input"
+    type="file"
+    accept="image/*"
+    capture="environment"
+    class="hidden"
+  />
+
+  <button type="button" id="checkin-photo-btn" class="checkin-photo-box">
+    <div id="checkin-photo-placeholder" class="checkin-photo-placeholder">
+      <span class="checkin-photo-plus">+</span>
+      <span>Foto aufnehmen / auswählen</span>
+    </div>
+    <img id="checkin-photo-preview" class="checkin-photo-preview hidden" alt="Tagesfoto" />
+  </button>
+
+  <p class="small-note">
+    Tipp: Nutze ähnliches Licht und denselben Winkel für bessere Vergleichbarkeit.
+  </p>
+</div>
+      <div class="range-group">
+        <div class="range-label-row">
+          <label for="checkin-blemishes">Unreinheiten heute</label>
+          <span id="checkin-blemishes-value">3</span>
+        </div>
+        <input
+          id="checkin-blemishes"
+          class="range-input"
+          type="range"
+          min="1"
+          max="5"
+          value="3"
+        />
+      </div>
+
+      <div class="range-group">
+        <div class="range-label-row">
+          <label for="checkin-redness">Rötungen heute</label>
+          <span id="checkin-redness-value">3</span>
+        </div>
+        <input
+          id="checkin-redness"
+          class="range-input"
+          type="range"
+          min="1"
+          max="5"
+          value="3"
+        />
+      </div>
+
+      <div class="range-group">
+        <div class="range-label-row">
+          <label for="checkin-dryness">Trockenheit heute</label>
+          <span id="checkin-dryness-value">3</span>
+        </div>
+        <input
+          id="checkin-dryness"
+          class="range-input"
+          type="range"
+          min="1"
+          max="5"
+          value="3"
+        />
+      </div>
+
+      <label class="checkbox-row">
+        <input id="checkin-consistency" type="checkbox" checked />
+        <span>Ich habe meine Routine heute durchgeführt</span>
+      </label>
+
+      <div class="textarea-group">
+        <label for="checkin-note">Kurznotiz (optional)</label>
+        <textarea
+          id="checkin-note"
+          rows="3"
+          placeholder="z. B. Haut ruhiger, neue Pickel, Produkt gut vertragen..."
+        ></textarea>
+      </div>
+
+      <button type="submit" class="primary-btn">Check-in speichern</button>
+    </form>
+  </div>
+</section>
+
         <!-- RESULTS -->
         <section id="results-screen" class="screen hidden">
           <div class="card">
@@ -725,6 +792,20 @@ SkinTrack</title>
           </div>
         </section>
       </main>
+      <nav class="bottom-nav hidden">
+  <button type="button" class="bottom-nav-btn active" id="nav-home-btn" data-target="dashboard-screen">
+    Home
+  </button>
+  <button type="button" class="bottom-nav-btn" id="nav-calendar-btn" data-target="calendar-screen">
+    Kalender
+  </button>
+  <button type="button" class="bottom-nav-btn" id="nav-checkin-btn" data-target="daily-checkin-screen">
+    Check-in
+  </button>
+  <button type="button" class="bottom-nav-btn" id="nav-results-btn" data-target="results-screen">
+    Ergebnis
+  </button>
+</nav>
     </div>
   </div>
 
