@@ -202,6 +202,9 @@ function bindBottomNav() {
       if (target === "results-screen") {
         renderResults();
       }
+      if (target === "impressum-screen") {
+  showScreen("impressum-screen");
+}
 
       showScreen(target);
     });
@@ -1059,6 +1062,7 @@ function bindBaseline() {
   bindRangeLabel("baseline-blemishes");
   bindRangeLabel("baseline-redness");
   bindRangeLabel("baseline-dryness");
+  bindRangeLabel("checkin-sleep");
 
   const backBtn = document.getElementById("back-to-recommendation-btn");
   if (backBtn) {
@@ -1110,6 +1114,28 @@ function getDaysSinceStart() {
   const diff = today.getTime() - start.getTime();
   return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
 }
+
+function calculateStreak() {
+  if (!state.checkins.length) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let streak = 0;
+  for (let i = 0; i < 30; i++) {
+    const day = new Date(today);
+    day.setDate(today.getDate() - i);
+    day.setHours(0, 0, 0, 0);
+    const dayKey = getLocalDayKey(day);
+    const checkin = state.checkins.find((item) => item.dayKey === dayKey);
+    if (checkin) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("de-DE", {
     day: "2-digit",
@@ -1320,18 +1346,20 @@ function renderHistory() {
     (a, b) => new Date(b.date) - new Date(a.date)
   );
 
-  historyList.innerHTML = sorted
-    .map((item) => {
-      return `
-        <li>
-          <strong>${formatDate(item.date)}</strong><br>
-          Unreinheiten: ${item.blemishes} • Rötungen: ${item.redness} • Trockenheit: ${item.dryness}<br>
-          Routine gemacht: ${item.consistency ? "Ja" : "Nein"}
-          ${item.note ? `<br><span class="small-note">${item.note}</span>` : ""}
-        </li>
-      `;
-    })
-    .join("");
+historyList.innerHTML = sorted
+  .map((item) => {
+    return `
+      <li>
+        <strong>${formatDate(item.date)}</strong><br>
+        <span>Unreinheiten:</span> <strong>${item.blemishes}</strong><br>
+        <span>Rötungen:</span> <strong>${item.redness}</strong><br>
+        <span>Trockenheit:</span> <strong>${item.dryness}</strong><br>
+        <span>Routine gemacht:</span> <strong>${item.consistency ? "Ja" : "Nein"}</strong>
+        ${item.note ? `<br><span class="small-note">${item.note}</span>` : ""}
+      </li>
+    `;
+  })
+  .join("");
 }
 
 function setCheckinInputValue(id, value) {
@@ -1508,6 +1536,9 @@ document.getElementById("dashboard-routine-description").textContent =
       ? "Deine 30 Tage sind abgeschlossen. Du kannst jetzt dein Ergebnis ansehen."
       : `Noch ${30 - clampedDays} Tage bis zum Ergebnis`;
 
+      document.getElementById("streak-text").textContent =
+  `Aktuelle Streak: ${calculateStreak()} Tage`;
+
  
 document.getElementById("dashboard-steps").innerHTML = steps
   .map((step) => `<li>${step}</li>`)
@@ -1518,6 +1549,7 @@ document.getElementById("dashboard-steps").innerHTML = steps
 renderHistory();
 prefillTodayCheckin();
 renderCalendar();
+renderDashboardCoach();
 
 }
 
@@ -1525,6 +1557,54 @@ function bindDashboard() {
   bindRangeLabel("checkin-blemishes");
   bindRangeLabel("checkin-redness");
   bindRangeLabel("checkin-dryness");
+
+  // --- Foto-Upload: Kamera und Galerie getrennt ---
+const cameraInput = document.getElementById("checkin-photo-input-camera");
+const galleryInput = document.getElementById("checkin-photo-input-gallery");
+const cameraBtn = document.getElementById("checkin-photo-camera-btn");
+const galleryBtn = document.getElementById("checkin-photo-gallery-btn");
+const removeBtn = document.getElementById("checkin-photo-remove-btn");
+const previewWrap = document.getElementById("checkin-photo-preview-wrap");
+const previewImg = document.getElementById("checkin-photo-preview");
+
+if (cameraBtn && cameraInput) {
+  cameraBtn.addEventListener("click", () => cameraInput.click());
+}
+if (galleryBtn && galleryInput) {
+  galleryBtn.addEventListener("click", () => galleryInput.click());
+}
+if (cameraInput) {
+  cameraInput.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const photoDataUrl = await compressImageFile(file);
+    previewImg.src = photoDataUrl;
+    previewWrap.classList.remove("hidden");
+    removeBtn.classList.remove("hidden");
+    currentCheckinPhoto = photoDataUrl;
+    cameraInput.value = "";
+  });
+}
+if (galleryInput) {
+  galleryInput.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const photoDataUrl = await compressImageFile(file);
+    previewImg.src = photoDataUrl;
+    previewWrap.classList.remove("hidden");
+    removeBtn.classList.remove("hidden");
+    currentCheckinPhoto = photoDataUrl;
+    galleryInput.value = "";
+  });
+}
+if (removeBtn) {
+  removeBtn.addEventListener("click", () => {
+    previewImg.src = "";
+    previewWrap.classList.add("hidden");
+    removeBtn.classList.add("hidden");
+    currentCheckinPhoto = null;
+  });
+}
 
   const photoInput = document.getElementById("checkin-photo-input");
   const photoBtn = document.getElementById("checkin-photo-btn");
@@ -1565,13 +1645,17 @@ function bindDashboard() {
       event.preventDefault();
 
       upsertTodayCheckin({
-        blemishes: Number(document.getElementById("checkin-blemishes").value),
-        redness: Number(document.getElementById("checkin-redness").value),
-        dryness: Number(document.getElementById("checkin-dryness").value),
-        consistency: document.getElementById("checkin-consistency").checked,
-        note: document.getElementById("checkin-note").value.trim(),
-        photo: currentCheckinPhoto
-      });
+  blemishes: Number(document.getElementById("checkin-blemishes").value),
+  redness: Number(document.getElementById("checkin-redness").value),
+  dryness: Number(document.getElementById("checkin-dryness").value),
+  consistency: document.getElementById("checkin-consistency").checked,
+  note: document.getElementById("checkin-note").value.trim(),
+  photo: currentCheckinPhoto,
+  sleep: Number(document.getElementById("checkin-sleep").value),
+  stress: Number(document.getElementById("checkin-stress").value),
+  nutrition: document.getElementById("checkin-nutrition").value
+});
+
 
       renderDashboard();
       alert("Check-in gespeichert");
@@ -1644,6 +1728,192 @@ function bindDashboard() {
 function average(values) {
   if (!values.length) return 0;
   return values.reduce((sum, current) => sum + current, 0) / values.length;
+}
+
+function getLatestCheckin() {
+  if (!state.checkins.length) return null;
+
+  return [...state.checkins].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  )[0];
+}
+
+function getRecentCheckins(limit = 7) {
+  if (!state.checkins.length) return [];
+  return [...state.checkins]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, limit);
+}
+
+function calculateTrend(current, baseline) {
+  if (current < baseline) return "better";
+  if (current > baseline) return "worse";
+  return "stable";
+}
+
+function getCoachFocusLabel(concern) {
+  const map = {
+    blemishes: "weniger neue Pickel",
+    redness: "weniger Rötungen",
+    dryness: "mehr Feuchtigkeit",
+    texture: "eine ruhigere Hautstruktur",
+    evenness: "ein ebenmäßigeres Hautbild"
+  };
+
+  return map[concern] || "dein Hautziel";
+}
+
+function generateDashboardCoach() {
+  const days = getDaysSinceStart();
+  const recent = getRecentCheckins(7);
+  const latest = getLatestCheckin();
+  const concern = getCoachFocusLabel(state.onboarding.mainConcern);
+
+  if (!state.baseline) {
+    return {
+      title: "Noch kein Coaching verfügbar",
+      text: "Sobald dein Startstatus gespeichert ist, kann SkinTrack deine Entwicklung einordnen.",
+      bullets: []
+    };
+  }
+
+  if (!latest) {
+    return {
+      title: "Starte mit deinem ersten Check-in",
+      text: `Dein Fokus ist aktuell ${concern}. Sobald du deinen ersten Tagesstatus speicherst, kann SkinTrack deinen Verlauf besser einordnen.`,
+      bullets: [
+        "Speichere heute deinen ersten Check-in.",
+        "Nutze möglichst ähnliche Bedingungen für deine Fotos und Bewertungen.",
+        "Je konsequenter du eincheckst, desto wertvoller wird dein 30-Tage-Fazit."
+      ]
+    };
+  }
+
+  const blemishTrend = calculateTrend(latest.blemishes, state.baseline.blemishes);
+  const rednessTrend = calculateTrend(latest.redness, state.baseline.redness);
+  const drynessTrend = calculateTrend(latest.dryness, state.baseline.dryness);
+
+  const adherence = days > 0 ? Math.round((state.checkins.length / days) * 100) : 0;
+
+  let title = "Dein Tagesfokus";
+  let text = "";
+  const bullets = [];
+
+  if (days <= 5) {
+    title = "Frühe Testphase";
+    text = `Du bist noch am Anfang deines 30-Tage-Tests. In dieser Phase geht es vor allem darum, deine Routine möglichst konstant umzusetzen und eine saubere Datengrundlage aufzubauen.`;
+  } else if (days <= 14) {
+    title = "Erste Entwicklung sichtbar";
+    text = `Du bist in der Beobachtungsphase. SkinTrack sieht bereits erste Signale – für ein belastbares Fazit sind jetzt vor allem Regelmäßigkeit und Vergleichbarkeit wichtig.`;
+  } else if (days < 30) {
+    title = "Zwischenfazit";
+    text = `Dein Verlauf wird aussagekräftiger. Jetzt lohnt es sich, auf Muster zu achten – nicht nur auf einzelne gute oder schlechte Tage.`;
+  } else {
+    title = "30-Tage-Test abgeschlossen";
+    text = `Du hast die wichtigste Phase abgeschlossen. Jetzt kannst du deine Routine fundierter bewerten als nur aus dem Bauchgefühl heraus.`;
+  }
+
+  if (blemishTrend === "better") {
+    bullets.push("Deine Unreinheiten liegen aktuell unter deinem Startwert.");
+  } else if (blemishTrend === "worse") {
+    bullets.push("Deine Unreinheiten liegen aktuell über deinem Startwert.");
+  } else {
+    bullets.push("Bei Unreinheiten ist aktuell noch keine klare Veränderung sichtbar.");
+  }
+
+  if (rednessTrend === "better") {
+    bullets.push("Auch bei Rötungen zeigt sich aktuell eine positive Tendenz.");
+  } else if (rednessTrend === "worse") {
+    bullets.push("Rötungen wirken aktuell eher erhöht – beobachte, ob das nur tagesabhängig ist.");
+  } else {
+    bullets.push("Rötungen wirken im Vergleich zum Start eher stabil.");
+  }
+
+  if (drynessTrend === "better") {
+    bullets.push("Deine Haut wirkt aktuell weniger trocken als zu Beginn.");
+  } else if (drynessTrend === "worse") {
+    bullets.push("Trockenheit ist aktuell stärker ausgeprägt als am Start.");
+  }
+
+  if (adherence >= 80) {
+    bullets.push(`Sehr gute Check-in-Quote (${adherence}%). Deine Datenbasis wird zunehmend belastbar.`);
+  } else if (adherence >= 50) {
+    bullets.push(`Solide Check-in-Quote (${adherence}%). Noch etwas mehr Regelmäßigkeit würde dein Fazit verbessern.`);
+  } else {
+    bullets.push(`Aktuell ist deine Check-in-Quote eher niedrig (${adherence}%). Für ein starkes Fazit solltest du konsequenter tracken.`);
+  }
+
+  return {
+    title,
+    text,
+    bullets
+  };
+}
+
+function renderDashboardCoach() {
+  const coach = generateDashboardCoach();
+
+  const titleEl = document.getElementById("coach-title");
+  const textEl = document.getElementById("coach-text");
+  const bulletsEl = document.getElementById("coach-bullets");
+
+  if (!titleEl || !textEl || !bulletsEl) return;
+
+  titleEl.textContent = coach.title;
+  textEl.textContent = coach.text;
+  bulletsEl.innerHTML = coach.bullets.map((item) => `<li>${item}</li>`).join("");
+}
+
+function generateFinalCoachText() {
+  if (!state.baseline) {
+    return "Sobald ein Startstatus vorliegt, kann SkinTrack ein persönlicheres Fazit erzeugen.";
+  }
+
+  const latest = getLatestCheckin();
+  if (!latest) {
+    return "Du hast noch keine Check-ins gespeichert. Für ein aussagekräftiges Fazit braucht SkinTrack echte Verlaufsdaten.";
+  }
+
+  const baselineAvg = average([
+    state.baseline.blemishes,
+    state.baseline.redness,
+    state.baseline.dryness
+  ]);
+
+  const currentAvg = average([
+    latest.blemishes,
+    latest.redness,
+    latest.dryness
+  ]);
+
+  let improvementPercent = 0;
+  if (baselineAvg > 0) {
+    improvementPercent = Math.round(
+      ((baselineAvg - currentAvg) / baselineAvg) * 100
+    );
+  }
+
+  const days = getDaysSinceStart();
+  const adherence = days > 0 ? Math.round((state.checkins.length / days) * 100) : 0;
+  const concern = getCoachFocusLabel(state.onboarding.mainConcern);
+
+  if (days < 10) {
+    return `Du bist noch in einer frühen Phase deines Routinetests. Erste Signale sind sichtbar, aber für ein echtes Urteil über ${concern} ist es noch zu früh.`;
+  }
+
+  if (improvementPercent >= 20 && adherence >= 70) {
+    return `Dein Verlauf spricht aktuell dafür, dass deine Routine in Bezug auf ${concern} gut funktioniert. Die Kombination aus positiver Entwicklung und solider Check-in-Quote macht dein Fazit deutlich belastbarer.`;
+  }
+
+  if (improvementPercent > 0) {
+    return `Es gibt erste positive Hinweise in Bezug auf ${concern}. Die Entwicklung ist noch nicht maximal deutlich, aber sie geht aktuell eher in die richtige Richtung.`;
+  }
+
+  if (improvementPercent === 0) {
+    return `Aktuell zeigt dein Verlauf in Bezug auf ${concern} noch keine klare Veränderung. Es kann sinnvoll sein, die Routine noch etwas länger konsequent zu testen, bevor du sie bewertest.`;
+  }
+
+  return `Aktuell ist in Bezug auf ${concern} noch keine Verbesserung sichtbar. Bevor du deine Routine komplett veränderst, prüfe zuerst, ob sie konsequent genug umgesetzt wurde und ob einzelne Tage den Gesamteindruck verzerren.`;
 }
 
 function getConcernLabel(concern) {
@@ -1725,7 +1995,7 @@ function renderResults() {
 
   document.getElementById("result-headline").textContent = headline;
   document.getElementById("result-summary").textContent =
-    `${unfinishedText} Dein Fokus war: ${focusLabel}. Gesamtveränderung: ${improvementPercent}% im Vergleich zum Startstatus.`;
+    `${unfinishedText} Dein Fokus war: ${focusLabel}. Gesamtveränderung: ${improvementPercent}% im Vergleich zum Startstatus. ${generateFinalCoachText()}`;
 
  document.getElementById("result-cards").innerHTML = `
     <div class="result-card">
@@ -1888,5 +2158,4 @@ function initApp() {
 }
 
 window.addEventListener("DOMContentLoaded", initApp);
-
 
