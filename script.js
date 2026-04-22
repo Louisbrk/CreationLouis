@@ -250,6 +250,129 @@ const routines = {
   }
 };
 
+const productCatalog = {
+  ceraveFoamingCleanser: {
+    id: "ceraveFoamingCleanser",
+    name: "CeraVe Schäumendes Reinigungsgel",
+    brand: "CeraVe",
+    category: "cleanser",
+    skinTypes: ["oily", "combination", "normal"],
+    concerns: ["blemishes", "oil"],
+    sensitivity: "medium",
+    budgetTier: "mid"
+  },
+  lrpEffaclarGel: {
+    id: "lrpEffaclarGel",
+    name: "La Roche-Posay Effaclar Schäumendes Reinigungsgel",
+    brand: "La Roche-Posay",
+    category: "cleanser",
+    skinTypes: ["oily", "combination"],
+    concerns: ["blemishes", "oil"],
+    sensitivity: "medium",
+    budgetTier: "high"
+  },
+  ordinaryNiacinamide: {
+    id: "ordinaryNiacinamide",
+    name: "The Ordinary Niacinamide 10% + Zinc 1%",
+    brand: "The Ordinary",
+    category: "serum",
+    skinTypes: ["oily", "combination", "normal"],
+    concerns: ["blemishes", "oil", "texture", "evenness"],
+    sensitivity: "medium",
+    budgetTier: "low"
+  },
+  eucerinTripleAction: {
+    id: "eucerinTripleAction",
+    name: "Eucerin DermoPure Clinical Triple Action",
+    brand: "Eucerin",
+    category: "treatment",
+    skinTypes: ["oily", "combination"],
+    concerns: ["blemishes", "marks", "oil"],
+    sensitivity: "medium",
+    budgetTier: "mid"
+  },
+  eucerinOilControlSpf: {
+    id: "eucerinOilControlSpf",
+    name: "Eucerin Oil Control Face Sun Gel-Creme LSF 50+",
+    brand: "Eucerin",
+    category: "spf",
+    skinTypes: ["oily", "combination"],
+    concerns: ["oil", "blemishes"],
+    sensitivity: "medium",
+    budgetTier: "mid"
+  },
+  lrpAntheliosOilControl: {
+    id: "lrpAntheliosOilControl",
+    name: "La Roche-Posay Anthelios UVMune 400 Oil Control Fluid LSF 50+",
+    brand: "La Roche-Posay",
+    category: "spf",
+    skinTypes: ["oily", "combination"],
+    concerns: ["oil", "blemishes"],
+    sensitivity: "medium",
+    budgetTier: "high"
+  },
+  ceraveHydratingCleanser: {
+    id: "ceraveHydratingCleanser",
+    name: "CeraVe Feuchtigkeitsspendende Reinigungslotion",
+    brand: "CeraVe",
+    category: "cleanser",
+    skinTypes: ["dry", "normal"],
+    concerns: ["dryness", "sensitivity"],
+    sensitivity: "high",
+    budgetTier: "mid"
+  },
+  ceraveHydratingOilCleanser: {
+    id: "ceraveHydratingOilCleanser",
+    name: "CeraVe Feuchtigkeitsspendendes Reinigungsöl",
+    brand: "CeraVe",
+    category: "cleanser",
+    skinTypes: ["dry", "veryDry", "normal"],
+    concerns: ["dryness", "sensitivity"],
+    sensitivity: "high",
+    budgetTier: "mid"
+  },
+  lrpDermallergoCream: {
+    id: "lrpDermallergoCream",
+    name: "La Roche-Posay Toleriane Dermallergo Creme",
+    brand: "La Roche-Posay",
+    category: "moisturizer",
+    skinTypes: ["dry", "normal"],
+    concerns: ["dryness", "sensitivity", "redness"],
+    sensitivity: "high",
+    budgetTier: "high"
+  },
+  lrpDermallergoFluid: {
+    id: "lrpDermallergoFluid",
+    name: "La Roche-Posay Toleriane Dermallergo Fluid",
+    brand: "La Roche-Posay",
+    category: "moisturizer",
+    skinTypes: ["combination", "normal", "sensitive"],
+    concerns: ["sensitivity", "redness"],
+    sensitivity: "high",
+    budgetTier: "high"
+  },
+  eucerinSensitiveProtectSpf: {
+    id: "eucerinSensitiveProtectSpf",
+    name: "Eucerin Sensitive Protect Face Sun Fluid",
+    brand: "Eucerin",
+    category: "spf",
+    skinTypes: ["dry", "normal", "sensitive"],
+    concerns: ["dryness", "sensitivity"],
+    sensitivity: "high",
+    budgetTier: "mid"
+  },
+  ceraveFacialCreamSpf: {
+    id: "ceraveFacialCreamSpf",
+    name: "CeraVe Feuchtigkeitsspendende Gesichtscreme mit LSF",
+    brand: "CeraVe",
+    category: "spfMoisturizer",
+    skinTypes: ["normal", "dry"],
+    concerns: ["dryness", "dailyCare"],
+    sensitivity: "medium",
+    budgetTier: "mid"
+  }
+};
+
 function scoreRoutine(profile) {
   const scores = {
     clear: 0,
@@ -460,6 +583,160 @@ function getRecommendationReason(profile, routineId) {
   ]);
 }
 
+function pickRoutineProducts(profile, routineId) {
+  if (routineId === "clear") {
+    const cleanser =
+      profile.budget === "high" || profile.acneLevel === "severe"
+        ? productCatalog.lrpEffaclarGel
+        : productCatalog.ceraveFoamingCleanser;
+
+    const treatment =
+      profile.mainConcern === "blemishes" && profile.budget !== "low"
+        ? productCatalog.eucerinTripleAction
+        : productCatalog.ordinaryNiacinamide;
+
+    const spf =
+      profile.budget === "high"
+        ? productCatalog.lrpAntheliosOilControl
+        : productCatalog.eucerinOilControlSpf;
+
+    return [
+      {
+        step: "Reinigung",
+        category: "cleanser",
+        primary: cleanser,
+        alternative:
+          cleanser.id === "lrpEffaclarGel"
+            ? productCatalog.ceraveFoamingCleanser
+            : productCatalog.lrpEffaclarGel
+      },
+      {
+        step: "Serum / Treatment",
+        category: "treatment",
+        primary: treatment,
+        alternative:
+          treatment.id === "eucerinTripleAction"
+            ? productCatalog.ordinaryNiacinamide
+            : productCatalog.eucerinTripleAction
+      },
+      {
+        step: "Sonnenschutz",
+        category: "spf",
+        primary: spf,
+        alternative:
+          spf.id === "lrpAntheliosOilControl"
+            ? productCatalog.eucerinOilControlSpf
+            : productCatalog.lrpAntheliosOilControl
+      }
+    ];
+  }
+
+  if (routineId === "barrier") {
+    const cleanser =
+      profile.skinType === "dry"
+        ? productCatalog.ceraveHydratingCleanser
+        : productCatalog.ceraveHydratingOilCleanser;
+
+    const moisturizer =
+      profile.skinType === "combination"
+        ? productCatalog.lrpDermallergoFluid
+        : productCatalog.lrpDermallergoCream;
+
+    return [
+      {
+        step: "Reinigung",
+        category: "cleanser",
+        primary: cleanser,
+        alternative:
+          cleanser.id === "ceraveHydratingCleanser"
+            ? productCatalog.ceraveHydratingOilCleanser
+            : productCatalog.ceraveHydratingCleanser
+      },
+      {
+        step: "Pflege",
+        category: "moisturizer",
+        primary: moisturizer,
+        alternative:
+          moisturizer.id === "lrpDermallergoFluid"
+            ? productCatalog.lrpDermallergoCream
+            : productCatalog.lrpDermallergoFluid
+      },
+      {
+        step: "Sonnenschutz",
+        category: "spf",
+        primary: productCatalog.eucerinSensitiveProtectSpf,
+        alternative: productCatalog.ceraveFacialCreamSpf
+      }
+    ];
+  }
+
+  const cleanser =
+    profile.skinType === "oily" || profile.skinType === "combination"
+      ? productCatalog.ceraveFoamingCleanser
+      : productCatalog.ceraveHydratingCleanser;
+
+  const secondStep =
+    profile.mainConcern === "texture" ||
+    profile.mainConcern === "evenness" ||
+    profile.skinType === "oily" ||
+    profile.skinType === "combination"
+      ? productCatalog.ordinaryNiacinamide
+      : productCatalog.lrpDermallergoFluid;
+
+  const thirdStep =
+    profile.skinType === "dry" || profile.skinType === "normal"
+      ? productCatalog.ceraveFacialCreamSpf
+      : productCatalog.eucerinOilControlSpf;
+
+  return [
+    {
+      step: "Reinigung",
+      category: "cleanser",
+      primary: cleanser,
+      alternative:
+        cleanser.id === "ceraveFoamingCleanser"
+          ? productCatalog.ceraveHydratingCleanser
+          : productCatalog.ceraveFoamingCleanser
+    },
+    {
+      step: "Pflege / Serum",
+      category: "serum",
+      primary: secondStep,
+      alternative:
+        secondStep.id === "ordinaryNiacinamide"
+          ? productCatalog.lrpDermallergoFluid
+          : productCatalog.ordinaryNiacinamide
+    },
+    {
+      step: "Sonnenschutz",
+      category: "spf",
+      primary: thirdStep,
+      alternative:
+        thirdStep.id === "ceraveFacialCreamSpf"
+          ? productCatalog.eucerinOilControlSpf
+          : productCatalog.ceraveFacialCreamSpf
+    }
+  ];
+}
+
+function formatRecommendedProducts(productSteps) {
+  return productSteps
+    .map((item) => {
+      return `
+        <li>
+          <strong>${item.step}:</strong> ${item.primary.name}
+          <br>
+          <span class="small-note">Alternative: ${item.alternative.name}</span>
+        </li>
+      `;
+    })
+    .join("");
+}
+
+function flattenRecommendedProducts(productSteps) {
+  return productSteps.map((item) => `${item.step}: ${item.primary.name}`);
+}
+
 function formatProfileSummary(profile) {
   const acneLevelLabels = {
     none: "Kaum Unreinheiten",
@@ -519,11 +796,14 @@ function formatProfileSummary(profile) {
 
 function renderRecommendation() {
   const recommendation = recommendRoutine(state.onboarding);
+  const reason = getRecommendationReason(state.onboarding, recommendation.routineId);
+  const productSteps = pickRoutineProducts(state.onboarding, recommendation.routineId);
+
+  recommendation.productSteps = productSteps;
+  recommendation.dashboardSteps = flattenRecommendedProducts(productSteps);
 
   state.recommendation = recommendation;
   saveState();
-
-  const reason = getRecommendationReason(state.onboarding, recommendation.routineId);
 
   document.getElementById("recommended-routine-name").textContent =
     recommendation.routine.name;
@@ -534,7 +814,7 @@ function renderRecommendation() {
   document.getElementById("recommended-routine-reason").textContent =
     `Wir empfehlen dir diese Routine, weil ${reason}.`;
   document.getElementById("recommended-routine-steps").innerHTML =
-    recommendation.routine.steps.map((step) => `<li>${step}</li>`).join("");
+    formatRecommendedProducts(productSteps);
   document.getElementById("recommended-summary").innerHTML =
     formatProfileSummary(state.onboarding);
 }
@@ -1198,7 +1478,13 @@ function renderDashboard() {
 
     routineName = routine.name;
     routineDescription = routine.description;
-    steps = routine.steps;
+
+    if (state.recommendation && Array.isArray(state.recommendation.dashboardSteps)) {
+      steps = state.recommendation.dashboardSteps;
+    } else {
+      steps = routine.steps;
+    }
+
     tag = "Aktiv";
   }
 
@@ -1435,7 +1721,7 @@ function renderResults() {
   const routineDescriptionLabel =
     state.routineMode === "custom"
       ? `${(state.customRoutine || []).filter(Boolean).length} Produkte getrackt`
-      : routines[state.activeRoutine].description;
+      : "Empfohlene Routine mit konkreten Produktvorschlägen";
 
   document.getElementById("result-headline").textContent = headline;
   document.getElementById("result-summary").textContent =
